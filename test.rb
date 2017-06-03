@@ -1,7 +1,7 @@
 require_relative 'algorithms'
 require_relative 'julian'
 
-date = DateTime.new(2017, 3, 15, 12)
+date = DateTime.new(2017, 3, 20, 12)
 jme = jme(date)
 
 hlon = heliocentric_longitude(jme)
@@ -14,7 +14,7 @@ glat = geocetric_latitude(hlat)
 
 esau = astronomical_units(jme)
 
-mean_anomaly = @horner.call(jme * 10, ma) / 3600 % 360
+mean_anomaly = horner(jme * 10, ma) / 3600 % 360
 
 puts "Date #{date.to_time}"
 puts "heliocentric longitude Earth #{hlon * 180 / Math::PI}"

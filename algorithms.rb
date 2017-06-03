@@ -22,46 +22,26 @@ def coefficients(jme, coeffs)
   # end coefficients
 end
 
-@horner = lambda { |t, abc|
+def horner(t, abc)
   abc.each_with_index.reduce(0){ |a, (e, i)| a + e * t**i }
-}
-
-def lambda_array(x, arr)
-  @horner.call(x, arr)
 end
 
 def heliocentric_longitude(jme)
   l = Helio::HELIOCENTRIC_LONGITUDE_COEFFS
   hlc = coefficients(jme, l)
-  @horner.call(jme, hlc) % (Math::PI * 2)
-  # ((hlc[0] +
-  # jme * (hlc[1] +
-  # jme * (hlc[2] +
-  # jme * (hlc[3] +
-  # jme * (hlc[4] +
-  # jme * hlc[5]))))) / 1e8) % (Math::PI * 2)
+  horner(jme, hlc) % (Math::PI * 2)
 end
 
 def heliocentric_latitude(jme)
   b = Helio::HELIOCENTRIC_LATITUDE_COEFFS
-  p hlc = coefficients(jme, b)
-  # @horner.call(jme, hlc) % (Math::PI * 2)
-  (hlc[0] +
-  jme * (hlc[1] +
-  jme * (hlc[2] +
-  jme * (hlc[3] +
-  jme * hlc[4])))) % (Math::PI * 2)
+  hlc = coefficients(jme, b)
+  horner(jme, hlc)
 end
 
 def astronomical_units(jme)
   r = Helio::AU_DISTANCE_COEFFS
   rvl = coefficients(jme, r)
-  @horner.call(jme, rvl)
-  # (rvl[0] +
-  # jme * (rvl[1] +
-  # jme * (rvl[2] +
-  # jme * (rvl[3] +
-  # jme * rvl[4])))) / 1e8
+  horner(jme, rvl)
 end
 
 def geocentric_longitude(hlon)
