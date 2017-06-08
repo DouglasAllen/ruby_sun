@@ -3,7 +3,7 @@ require_relative 'helio_l'
 require_relative 'helio_b'
 require_relative 'helio_r'
 
-def coefficients(jme, coeffs)
+def coefficients(j, coeffs)
   # Given the julian century time and the constant name for
   #  the coefficient set to use
   #  sums the time-varying coefficients sub arrays and
@@ -14,7 +14,7 @@ def coefficients(jme, coeffs)
     group = coeffs[g]
     tsum = 0.0
     group.each do |item|
-      tsum += (item[0] * Math.cos(item[1] + item[2] * jme))
+      tsum += (item[0] * Math.cos(item[1] + item[2] * j))
     end
     result << tsum
   end
@@ -26,30 +26,30 @@ def horner(t, abc)
   abc.each_with_index.reduce(0) { |a, (e, i)| a + e * t**i }
 end
 
-def heliocentric_longitude(jme)
+def hlon(j)
   l = Helio::HELIOCENTRIC_LONGITUDE_COEFFS
-  hlc = coefficients(jme, l)
-  horner(jme, hlc) % (Math::PI * 2)
+  hlc = coefficients(j, l)
+  horner(j, hlc) % (Math::PI * 2)
 end
 
-def heliocentric_latitude(jme)
+def hlat(j)
   b = Helio::HELIOCENTRIC_LATITUDE_COEFFS
-  hlc = coefficients(jme, b)
-  horner(jme, hlc)
+  hlc = coefficients(j, b)
+  horner(j, hlc)
 end
 
-def astronomical_units(jme)
+def au(j)
   r = Helio::AU_DISTANCE_COEFFS
-  rvl = coefficients(jme, r)
-  horner(jme, rvl)
+  rvl = coefficients(j, r)
+  horner(j, rvl)
 end
 
-def geocentric_longitude(hlon)
-  (hlon + Math::PI) % (Math::PI * 2)
+def glon(j)
+  (hlon(j) + Math::PI) % (Math::PI * 2)
 end
 
-def geocetric_latitude(hlat)
-  -1 * hlat
+def glat(j)
+  -1 * hlat(j)
 end
 
 def ma(j)
@@ -69,7 +69,8 @@ def ec(g)
 end
 
 def tl(j)
-  (ec(ma(j)) + ml(j)) % 360
+  # (ec(ma(j)) + ml(j)) % 360
+  glon(j) - 0.000025
 end
 
 def om(j)
@@ -91,7 +92,6 @@ def eqe(j)
 end
 
 def lambda(j)
-  geocentric_longitude(heliocentric_longitude(j)) +
-    nutation(j)[0] -
-    0.005691611 / astronomical_units(j)
+  glon(j) * 180 / Math::PI +
+    nutation(j)[0] - 0.005691611 / au(j)
 end
