@@ -72,6 +72,26 @@ def tl(j)
   (ec(ma(j)) + ml(j)) % 360
 end
 
-def om
-  [450_160.398036, - 6_962_890.5431, 7.4722, 0.007702, - 0.00005939]
+def om(j)
+  a = [450_160.398036, - 6_962_890.5431, 7.4722, 0.007702, - 0.00005939]
+  horner(j * 10, a) / 3600 % 360
+end
+
+def al(j)
+  (tl(j) - 0.00569 - 0.00478 * Math.sin(Math::PI / 180 * om(j))) % 360
+end
+
+def meo(j)
+  a = [84_381.406, -46.836769, -0.0001831, 0.00200340, -0.000000576, -0.0000000434]
+  horner(j * 10, a) / 3600
+end
+
+def eqe(j)
+  nutation(j)[0] * Math.cos(Math::PI / 180 * meo(j))
+end
+
+def lambda(j)
+  geocentric_longitude(heliocentric_longitude(j)) +
+    nutation(j)[0] -
+    0.005691611 / astronomical_units(j)
 end
