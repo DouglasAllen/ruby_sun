@@ -54,13 +54,13 @@ end
 
 def ma(j)
   a = [1_287_104.793048, 129_596_581.0481, - 0.5532, 0.000136, - 0.00001149]
-  horner(j * 10, a) / 3600 % 360
+  horner(j * 10, a) / 3600 % 360 * Math::PI / 180
 end
 
 def ml(j)
   a = [280.4664567, 36_000.76982779, 0.0003032028,
        1.0 / 499_310.0, 1.0 / -152_990.0, 1.0 / -19_880_000.0]
-  horner(j * 10, a) % 360
+  horner(j * 10, a) % 360 * Math::PI / 180
 end
 
 def ec(g)
@@ -70,7 +70,7 @@ end
 
 def tl(j)
   # (ec(ma(j)) + ml(j)) % 360
-  glon(j) - 0.000025
+  glon(j) - 0.000025 * Math::PI / 180
 end
 
 def om(j)
@@ -79,19 +79,42 @@ def om(j)
 end
 
 def al(j)
-  (tl(j) - 0.00569 - 0.00478 * Math.sin(Math::PI / 180 * om(j))) % 360
+  (tl(j) - 0.00569 * Math::PI / 180 - 0.00478 * Math::PI / 180 * Math.sin(Math::PI / 180 * om(j)))
 end
 
 def meo(j)
   a = [84_381.406, -46.836769, -0.0001831, 0.00200340, -0.000000576, -0.0000000434]
-  horner(j * 10, a) / 3600
+  horner(j * 10, a) / 3600 * Math::PI / 180
+end
+
+def eps(j)
+  meo(j) + nutation(j)[1]
 end
 
 def eqe(j)
-  nutation(j)[0] * Math.cos(Math::PI / 180 * meo(j))
+  nutation(j)[0] * Math.cos(meo(j))
 end
 
 def lambda(j)
-  glon(j) * 180 / Math::PI +
-    nutation(j)[0] - 0.005691611 / au(j)
+  glon(j) + nutation(j)[0] - 0.005691611 / au(j)
+end
+
+def beta(j)
+  j *= 10
+  lsp = -1.397 * j - 0.00031 * j * j
+  lsp_rad = lsp * Math::PI / 180
+  glat(j) + 0.000011 * (Math.cos(lsp_rad) - Math.sin(lsp_rad))
+end
+
+def dec(j)
+  Math.asin(
+    Math.sin(beta(j)) * Math.cos(eps(j)) +
+    Math.cos(beta(j)) * Math.sin(eps(j)) * Math.sin(lambda(j)))
+end
+
+def ra(j)
+  Math.atan2(
+    (Math.sin(lambda(j)) * Math.cos(eps(j)) -
+    Math.tan(beta(j)) * Math.sin(eps(j))),
+    Math.cos(lambda(j)))
 end

@@ -39,7 +39,9 @@ def nutation(j)
     nutation_oblique += ((e[2] +
     (e[3] * j * 10)) * Math.cos(Math::PI / 180 * sigmaxy))
   end
-  [nutation_long / 36_000_000, nutation_oblique / 36_000_000]
+  [nutation_long / 36_000_000 * Math::PI / 180,
+   nutation_oblique / 36_000_000 * Math::PI / 180]
+
 end
 
 # 105
