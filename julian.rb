@@ -5,7 +5,7 @@ def jme(date)
   jd = date.ajd
   year = date.year
   t = year - 2000
-  p delta_t = 62.92 + 0.32217 * t + 0.005589 * t**2
+  delta_t = 62.92 + 0.32217 * t + 0.005589 * t**2
   jde = jd + delta_t / 86_400
   jce = (jde - 2_451_545) / 36_525
   jce / 10

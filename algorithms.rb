@@ -3,6 +3,21 @@ require_relative 'helio_l'
 require_relative 'helio_b'
 require_relative 'helio_r'
 
+include Math
+
+@pi2 = PI * 2
+@dtr = PI / 180
+@rtd = 180 / PI
+
+def sind(x)
+  sin(x * @dtr)
+end
+
+def cosd(x)
+  cos(x * @dtr)
+end
+
+
 def coefficients(j, coeffs)
   # Given the julian century time and the constant name for
   #  the coefficient set to use
@@ -14,7 +29,7 @@ def coefficients(j, coeffs)
     group = coeffs[g]
     tsum = 0.0
     group.each do |item|
-      tsum += (item[0] * Math.cos(item[1] + item[2] * j))
+      tsum += (item[0] * cos(item[1] + item[2] * j))
     end
     result << tsum
   end
@@ -29,7 +44,7 @@ end
 def hlon(j)
   l = Helio::HELIOCENTRIC_LONGITUDE_COEFFS
   hlc = coefficients(j, l)
-  horner(j, hlc) % (Math::PI * 2)
+  horner(j, hlc) % @pi2
 end
 
 def hlat(j)
@@ -45,7 +60,7 @@ def au(j)
 end
 
 def glon(j)
-  (hlon(j) + Math::PI) % (Math::PI * 2)
+  (hlon(j) + PI) % @pi2
 end
 
 def glat(j)
@@ -54,23 +69,26 @@ end
 
 def ma(j)
   a = [1_287_104.793048, 129_596_581.0481, - 0.5532, 0.000136, - 0.00001149]
-  horner(j * 10, a) / 3600 % 360 * Math::PI / 180
+  horner(j * 10, a) / 3600 % 360 * @dtr
 end
 
 def ml(j)
   a = [280.4664567, 36_000.76982779, 0.0003032028,
        1.0 / 499_310.0, 1.0 / -152_990.0, 1.0 / -19_880_000.0]
-  horner(j * 10, a) % 360 * Math::PI / 180
+  horner(j * 10, a) % 360 * @dtr
 end
 
-def ec(g)
-  1.915 * Math.sin(g * Math::PI / 180) +
-    0.020 * Math.sin(2 * g * Math::PI / 180)
+def ec(j)
+  (1.915 * sin(ma(j)) +
+    0.020 * sin(2 * ma(j))) * @dtr
+end
+
+def nu(j)
+  ma(j) + ec(j)
 end
 
 def tl(j)
-  # (ec(ma(j)) + ml(j)) % 360
-  glon(j) - 0.000025 * Math::PI / 180
+  glon(j) - 0.000025 * @dtr
 end
 
 def om(j)
@@ -79,12 +97,12 @@ def om(j)
 end
 
 def al(j)
-  (tl(j) - 0.00569 * Math::PI / 180 - 0.00478 * Math::PI / 180 * Math.sin(Math::PI / 180 * om(j)))
+  (tl(j) - 0.00569 * @dtr - 0.00478 * @dtr * sind(om(j)))
 end
 
 def meo(j)
   a = [84_381.406, -46.836769, -0.0001831, 0.00200340, -0.000000576, -0.0000000434]
-  horner(j * 10, a) / 3600 * Math::PI / 180
+  horner(j * 10, a) / 3600 * @dtr
 end
 
 def eps(j)
@@ -92,7 +110,7 @@ def eps(j)
 end
 
 def eqe(j)
-  nutation(j)[0] * Math.cos(meo(j))
+  nutation(j)[0] * Math.cos(eps(j))
 end
 
 def lambda(j)
@@ -102,19 +120,38 @@ end
 def beta(j)
   j *= 10
   lsp = -1.397 * j - 0.00031 * j * j
-  lsp_rad = lsp * Math::PI / 180
-  glat(j) + 0.000011 * (Math.cos(lsp_rad) - Math.sin(lsp_rad))
+  glat(j) + 0.000011 * (cosd(lsp) - sind(lsp))
 end
 
 def dec(j)
-  Math.asin(
-    Math.sin(beta(j)) * Math.cos(eps(j)) +
-    Math.cos(beta(j)) * Math.sin(eps(j)) * Math.sin(lambda(j)))
+  asin(
+    sin(beta(j)) * cos(eps(j)) +
+    cos(beta(j)) * sin(eps(j)) * sin(lambda(j))
+  )
 end
 
 def ra(j)
-  Math.atan2(
-    (Math.sin(lambda(j)) * Math.cos(eps(j)) -
-    Math.tan(beta(j)) * Math.sin(eps(j))),
-    Math.cos(lambda(j)))
+  atan2(
+    (sin(lambda(j)) * cos(eps(j)) -
+    tan(beta(j)) * sin(eps(j))),
+    cos(lambda(j))
+  )
+end
+
+def sha(j)
+  @pi2 - ra(j)
+end
+
+def gmst(j)
+  a = [280.46061837, 0.000387933, 1 / 38_710_000.0]
+  (360.98564736629 * j * 365_250.0 +
+  horner(j * 10, a)) % 360 * @dtr
+end
+
+def gast(j)
+  gmst(j) + eqe(j)
+end
+
+def eot(j)
+  ma(j) - nu(j) + lambda(j) - ra(j)
 end
