@@ -33,6 +33,12 @@ sha = sha(jme) * @rtd
 gmst = gmst(jme) * @rtd / 15
 gast = gast(jme) * @rtd / 15
 eot = eot(jme) * @rtd / 15 * 60
+lat = 23.4350004 * @dtr
+lon = 246.21827887558658 * @dtr
+gha = gha(jme) * @rtd
+lha = lha(jme, lon) * @rtd
+alt = alt(jme, lat, lon) * @rtd
+az = az(jme, lat, lon) * @rtd
 
 puts "Date #{date.to_time}"
 puts "heliocentric longitude Earth #{hlon}"
@@ -58,3 +64,7 @@ puts "sidereal hour angle #{sha}"
 puts "GMST #{gmst}"
 puts "GAST #{gast}"
 puts "EOT #{eot}"
+puts "GHA #{gha}"
+puts "LHA #{lha}"
+puts "altitude #{alt}"
+puts "azimuth #{az}"

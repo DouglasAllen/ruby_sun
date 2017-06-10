@@ -17,6 +17,9 @@ def cosd(x)
   cos(x * @dtr)
 end
 
+def tand(x)
+  tan(x * @dtr)
+end
 
 def coefficients(j, coeffs)
   # Given the julian century time and the constant name for
@@ -154,4 +157,32 @@ end
 
 def eot(j)
   ma(j) - nu(j) + lambda(j) - ra(j)
+end
+
+def gha(j)
+  (gast(j) - ra(j)) % @pi2
+end
+
+def lha(j, lon)
+  # The Local Hour Angle (Meeus Page 92)
+  (gha(j) - lon) % @pi2
+end
+
+# Local Horizontal Coordinates (Meeus Page 93)
+# Altitude
+def alt(j, lat, lon)
+  asin(
+    sind(lat) * sind(dec(j)) +
+    cosd(lat) * cosd(dec(j)) * cosd(lha(j, lon))
+  )
+end
+
+# Azimuth
+def az(j, lat, lon)
+  atan2(
+    sind(lha(j, lon)),
+    (cosd(lha(j, lon)) * sind(lat) -
+     tand(dec(j)) * cosd(lat)
+    )
+  )
 end
